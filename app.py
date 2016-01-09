@@ -3,12 +3,15 @@ from flask import Flask, abort, jsonify, request
 import naoqi
 
 from naoqi import ALProxy
+import logger
 
 
 app = Flask(__name__)
 
 nao_host = "localhost"
-nao_port = 39726
+nao_port = 43173
+logger = logger.Logger(4) # Initialize logger with level "debug"
+
 
 @app.route('/')
 def index():
@@ -27,17 +30,64 @@ robots = [
     }
 ]
 
+@app.route('/behaviors', methods=['GET'])
+def get_behaviors():
+    logger.debug("get_behaviors() called")
+    managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
+    behaviors = managerProxy.getInstalledBehaviors()
+    return jsonify({"behaviors": behaviors})
+
+@app.route('/behaviors/start', methods=['POST'])
+def start_behavior():
+    logger.debug("start_behavior() called")
+    if not request.json or not 'behavior' in request.json:
+        abort(400)
+    behavior = str(request.json['behavior'])
+    managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
+
+    if (managerProxy.isBehaviorInstalled(behavior)):
+        logger.debug("Behavior "+behavior+" is present on the robot, starting behavior...")
+        managerProxy.post.runBehavior(behavior)
+        return jsonify({"result": "Behavior started"})
+    else:
+        logger.debug("Behavior "+behavior+" is NOT present on the robot")
+        return jsonify({"result": "Behavior not found"}), 404
+
+@app.route('/behaviors/stop', methods=['POST'])
+def stop_behavior():
+    logger.debug("stop_behavior() called")
+    if not request.json or not 'behavior' in request.json:
+        abort(400)
+    behavior = str(request.json['behavior'])
+    managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
+
+    if (managerProxy.isBehaviorRunning(behavior)):
+        logger.debug("Behavior "+behavior+" is running on the robot, stopping behavior...")
+        managerProxy.stopBehavior(behavior)
+        return jsonify({"result": "Behavior stopped"})
+    else:
+        logger.debug("Behavior "+behavior+" is NOT running on the robot")
+        return jsonify({"result": "Behavior not running"}), 404
+
+@app.route('/beh', methods=['GET'])
+def test():
+    managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
+    x = getBehaviors(managerProxy)
+    for behavior in x:
+        print "iteration" + behavior
+    return str(x), 200
+
 @app.route('/say', methods=['POST'])
 def say():
     if not request.json or not 'text' in request.json:
         abort(400)
-    tts = ALProxy("ALTextToSpeech", "localhost", 39726)
+    tts = ALProxy("ALTextToSpeech", nao_host, nao_port)
     tts.say(str(request.json['text']))
     return jsonify({'text': request.json['text']}), 200
 
 @app.route('/ask/<string:question>', methods=['GET'])
 def ask(question):
-    tts = ALProxy("ALTextToSpeech", "localhost", 39726)
+    tts = ALProxy("ALTextToSpeech", nao_host, nao_port)
     tts.say(str(question))
     return jsonify({'question': question}), 200
 
