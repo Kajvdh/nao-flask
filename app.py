@@ -35,7 +35,7 @@ def get_behaviors():
     logger.debug("get_behaviors() called")
     managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
     behaviors = managerProxy.getInstalledBehaviors()
-    return jsonify({"behaviors": behaviors})
+    return jsonify({"behaviors": behaviors}), 200
 
 @app.route('/behaviors/start', methods=['POST'])
 def start_behavior():
@@ -48,10 +48,10 @@ def start_behavior():
     if (managerProxy.isBehaviorInstalled(behavior)):
         logger.debug("Behavior "+behavior+" is present on the robot, starting behavior...")
         managerProxy.post.runBehavior(behavior)
-        return jsonify({"result": "Behavior started"})
+        return jsonify({"started": behavior}), 200
     else:
         logger.debug("Behavior "+behavior+" is NOT present on the robot")
-        return jsonify({"result": "Behavior not found"}), 404
+        return jsonify({"error": "Behavior not found"}), 404
 
 @app.route('/behaviors/stop', methods=['POST'])
 def stop_behavior():
@@ -64,18 +64,23 @@ def stop_behavior():
     if (managerProxy.isBehaviorRunning(behavior)):
         logger.debug("Behavior "+behavior+" is running on the robot, stopping behavior...")
         managerProxy.stopBehavior(behavior)
-        return jsonify({"result": "Behavior stopped"})
+        return jsonify({"stopped": behavior}), 200
     else:
         logger.debug("Behavior "+behavior+" is NOT running on the robot")
-        return jsonify({"result": "Behavior not running"}), 404
+        return jsonify({"error": "Behavior not running"}), 404
 
-@app.route('/beh', methods=['GET'])
-def test():
+@app.route('/behaviors/stop/all', methods=['GET'])
+def stop_behaviors():
+    logger.debug("stop_behaviors() called")
     managerProxy = ALProxy("ALBehaviorManager", nao_host, nao_port)
-    x = getBehaviors(managerProxy)
-    for behavior in x:
-        print "iteration" + behavior
-    return str(x), 200
+    behaviors = managerProxy.getRunningBehaviors()
+
+    if (len(behaviors) > 0):
+        managerProxy.stopAllBehaviors()
+        return jsonify({"stopped": behaviors}), 200
+    else:
+        return jsonify({"error": "No running behaviors"}), 400
+
 
 @app.route('/say', methods=['POST'])
 def say():
