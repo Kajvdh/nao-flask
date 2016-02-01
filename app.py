@@ -9,7 +9,7 @@ import logger
 app = Flask(__name__)
 
 nao_host = "localhost"
-nao_port = 43173
+nao_port = 58989
 logger = logger.Logger(4) # Initialize logger with level "debug"
 
 
@@ -29,6 +29,13 @@ robots = [
         'description': u'An advanced Nao robot that takes care of your health'
     }
 ]
+
+@app.route('/battery', methods=['GET'])
+def get_battery_level():
+    logger.debug("get_batteryLevel() called")
+    batteryProxy = ALProxy("ALBattery", nao_host, nao_port)
+    level = batteryProxy.getBatteryCharge()
+    return jsonify({"battery": level}), 200
 
 @app.route('/behaviors', methods=['GET'])
 def get_behaviors():
