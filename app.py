@@ -30,6 +30,32 @@ robots = [
     }
 ]
 
+@app.route('/volume', methods=['GET'])
+def set_volume():
+    logger.debug("set_volume() called")
+    audioDeviceProxy = ALProxy("ALAudioDeviceProxy", nao_host, nao_port)
+    level = str(audioDeviceProxy.getOutputVolume())
+    return jsonify({"volume": level}), 200
+
+@app.route('/volume/<int:volume>', methods=['POST'])
+def set_volume(volume):
+    logger.debug("set_volume() called")
+    vol = int(volume)
+    if ((vol <= 100) and (vol >= 0)):
+        audioDeviceProxy = ALProxy("ALAudioDeviceProxy", nao_host, nao_port)
+        audioDeviceProxy.setOutputVolume(vol)
+        return jsonify({"volume": vol}), 200
+    else:
+        return jsonify({"error": "Volume out of range [0,100]"}), 400
+
+
+@app.route('/temperature', methods=['GET'])
+def get_temperature_diagnosis():
+    logger.debug("get_temperature_diagnosis() called")
+    bodyTemperatureProxy = ALProxy("ALBodyTemperatureProxy", nao_host, nao_port)
+    level = str(bodyTemperatureProxy.getTemperatureDiagnosis())
+    return jsonify({"temperature": level}), 200
+
 @app.route('/battery', methods=['GET'])
 def get_battery_level():
     logger.debug("get_batteryLevel() called")
