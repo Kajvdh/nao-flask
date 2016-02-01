@@ -34,7 +34,7 @@ robots = [
 def get_battery_level():
     logger.debug("get_batteryLevel() called")
     batteryProxy = ALProxy("ALBattery", nao_host, nao_port)
-    level = batteryProxy.getBatteryCharge()
+    level = str(batteryProxy.getBatteryCharge())
     return jsonify({"battery": level}), 200
 
 @app.route('/behaviors', methods=['GET'])
