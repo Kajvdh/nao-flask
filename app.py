@@ -33,7 +33,7 @@ robots = [
 @app.route('/volume', methods=['GET'])
 def get_volume():
     logger.debug("set_volume() called")
-    audioDeviceProxy = ALProxy("ALAudioDeviceProxy", nao_host, nao_port)
+    audioDeviceProxy = ALProxy("ALAudioDevice", nao_host, nao_port)
     level = str(audioDeviceProxy.getOutputVolume())
     return jsonify({"volume": level}), 200
 
@@ -42,7 +42,7 @@ def set_volume(volume):
     logger.debug("set_volume() called")
     vol = int(volume)
     if ((vol <= 100) and (vol >= 0)):
-        audioDeviceProxy = ALProxy("ALAudioDeviceProxy", nao_host, nao_port)
+        audioDeviceProxy = ALProxy("ALAudioDevice", nao_host, nao_port)
         audioDeviceProxy.setOutputVolume(vol)
         return jsonify({"volume": vol}), 200
     else:
@@ -52,7 +52,7 @@ def set_volume(volume):
 @app.route('/temperature', methods=['GET'])
 def get_temperature_diagnosis():
     logger.debug("get_temperature_diagnosis() called")
-    bodyTemperatureProxy = ALProxy("ALBodyTemperatureProxy", nao_host, nao_port)
+    bodyTemperatureProxy = ALProxy("ALBodyTemperature", nao_host, nao_port)
     level = str(bodyTemperatureProxy.getTemperatureDiagnosis())
     return jsonify({"temperature": level}), 200
 
