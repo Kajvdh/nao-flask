@@ -8,8 +8,8 @@ import logger
 
 app = Flask(__name__)
 
-nao_host = "localhost"
-nao_port = 58989
+nao_host = "192.168.0.154"
+nao_port = 9559
 logger = logger.Logger(4) # Initialize logger with level "debug"
 
 
@@ -31,7 +31,7 @@ robots = [
 ]
 
 @app.route('/volume', methods=['GET'])
-def set_volume():
+def get_volume():
     logger.debug("set_volume() called")
     audioDeviceProxy = ALProxy("ALAudioDeviceProxy", nao_host, nao_port)
     level = str(audioDeviceProxy.getOutputVolume())
